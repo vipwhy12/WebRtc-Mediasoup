@@ -1,13 +1,14 @@
 //index.js
 const io = require('socket.io-client')
 const mediasoupClient = require('mediasoup-client')
+const {StrictEventEmitter} = require('socket.io-client/build/typed-events');
 
 const roomName = window.location.pathname.split('/')[2]
 
 const socket = io("/mediasoup")
 
 socket.on('connection-success', ({ socketId }) => {
-  console.log(socketId)
+  console.log('🌟SocketId🌟: ' + socketId)
   getLocalStream()
 })
 
@@ -50,7 +51,7 @@ let params = {
 }
 
 let audioParams;
-let videoParams = { params };
+let videoParams = {params};
 let consumingTransports = [];
 
 const streamSuccess = (stream) => {
@@ -63,7 +64,7 @@ const streamSuccess = (stream) => {
 }
 
 const joinRoom = () => {
-  socket.emit('joinRoom', { roomName }, (data) => {
+  socket.emit('joinRoom', {roomName}, (data) => {
     console.log(`Router RTP Capabilities... ${data.rtpCapabilities}`)
     // we assign to local variable and will be used when
     // loading the client Device (see createDevice above)
@@ -348,7 +349,15 @@ socket.on('producer-closed', ({ remoteProducerId }) => {
   consumerTransports = consumerTransports.filter(transportData => transportData.producerId !== remoteProducerId)
 
   // remove the video div element
-  videoContainer.removeChild(document.getElementById(`td-${remoteProducerId}`))
+  // 🌟1. 원본코드
+  // videoContainer.removeChild(document.getElementById(`td-${remoteProducerId}`))
+
+  //🌟 수정코드
+  const videoContainer = document.getElementById("videoContainer");
+  const removeTarget = document.getElementById(remoteProducerId);
+  if(removeTarget){
+    videoContainer.removeChild(removeTarget)
+  }
 })
 
 
