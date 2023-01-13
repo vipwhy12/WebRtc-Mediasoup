@@ -17973,49 +17973,6 @@ const connectRecvTransport = async (consumerTransport, remoteProducerId, serverC
       },
     ]
 
-    /*
-    // create a new div element for the new consumer media
-    const newElem = document.createElement('div')
-    newElem.setAttribute('id', `td-${remoteProducerId}`)
-
-    if (params.kind == 'audio') {
-      //append to the audio container
-      newElem.innerHTML = '<audio id="' + remoteProducerId + '" autoplay></audio>'
-    } else {
-      //append to the video container
-      newElem.setAttribute('class', 'remoteVideo')
-      newElem.innerHTML = '<video id="' + remoteProducerId + '" autoplay class="video"></video>'
-
-      const wrapDiv = document.createElement('div')
-      const audioOut = document.createElement('button')
-
-      // audioOut.setAttribute('id', 'mute')
-      // const audioOutI = document.createElement('i')
-      // audioOut.setAttribute('class', 'fa-solid fa-microphone')
-      // audioOut.appendChild(audioOutI)
-    
-      // const audioOutI = document.createElement('i');
-      // audioOut.setAttribute('class', 'fa-solid fa-microphone');
-      // audioOut.appendChild(audioOutI)
-
-      // const videoOut = document.createElement('button')
-      // const videoOutI = document.createElement('i')
-      // videoOutI.setAttribute('class', 'fa-solid fa-video`')
-      // videoOut.appendChild(videoOutI)
-
-      wrapDiv.appendChild(audioOut)
-      // wrapDiv.appendChild(videoOut)
-
-      // videoOut.addEventListener('click', (event)=> {
-      //   // const socketId = event.target.closest(".remoteVideo").id
-      //   // console.log('🐸나와랏 얍!🐸' + socketId)
-      // })
-
-      // videoDiv.appendChild(wrapDiv)
-    }
-
-    videoContainer.appendChild(newElem)
-*/
   const videoContainer = document.getElementById("videoContainer")
     let videoDiv = document.getElementById(socketId)
       if (!videoDiv) {
@@ -18061,6 +18018,18 @@ const connectRecvTransport = async (consumerTransport, remoteProducerId, serverC
   })
 }
 
+socket.on('student-video-controller', ({off}) => {
+  myStream
+  .getVideoTracks()
+  .forEach((track) => (track.enabled = !track.enabled)); // 카메라 화면 요소를 키고 끄기 
+})
+
+socket.on('student-audio-controller', ({off}) => {
+  myStream
+  .getAudioTracks()
+  .forEach((track) => (track.enabled = !track.enabled)); // 카메라 화면 요소를 키고 끄기 
+})
+
 socket.on('producer-closed', ({ remoteProducerId }) => {
   // server notification is received when a producer is closed
   // we need to close the client-side consumer and associated transport
@@ -18085,9 +18054,9 @@ socket.on('producer-closed', ({ remoteProducerId }) => {
 
 //🌟 수정코드 togggleWebRTCCONTEXT
 function toggleWebRTCContext(event, context) {
-  // console.log(event, context)
-  console.log('🍀🍀🍀'+ event)
-  console.log('🍀🍀🍀' + context)
+
+  console.log('🍀🍀event🍀🍀'+ event)
+  console.log('🍀🍀context🍀🍀' + context)
 
   const remoteVideoDiv = event.target.closest(".remoteVideo")
   console.log(remoteVideoDiv)

@@ -299,8 +299,6 @@ connections.on('connection', async socket => {
       if (producerData.socketId !== socketId && producerData.roomName === roomName) {
         const producerSocket = peers[producerData.socketId].socket
         // use socket to send producer id to producer
-
-        console.log('보낼 소켓=============' + socketId )
         producerSocket.emit('new-producer', { producerId: id, socketId : socketId })
       }
     })
@@ -420,6 +418,18 @@ connections.on('connection', async socket => {
     console.log('consumer resume')
     const { consumer } = consumers.find(consumerData => consumerData.consumer.id === serverConsumerId)
     await consumer.resume()
+  })
+
+  socket.on('video-out', async({socketId , off}) =>{
+    const studentSocket = peers[socketId].socket
+    studentSocket.emit('student-video-controller', {off : off})
+    console.log( "🙊🙊🙊🙊🙊VIDEO" + socketId, off )
+    // producerSocket.emit('new-producer', { producerId: id, socketId : socketId })
+  }) 
+
+  socket.on('audio-out', async({socketId, off}) =>{
+    console.log( "🙊🙊🙊🙊🙊AUDIO" + socketId, off )
+    studentSocket.emit('student-audio-controller', {off : off})
   })
 })
 
