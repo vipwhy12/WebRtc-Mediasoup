@@ -20,6 +20,8 @@ let videoProducer
 let consumer
 let isProducer = false
 
+let myStream;
+
 // https://mediasoup.org/documentation/v3/mediasoup-client/api/#ProducerOptions
 // https://mediasoup.org/documentation/v3/mediasoup-client/api/#transport-produce
 let params = {
@@ -53,7 +55,7 @@ let consumingTransports = [];
 
 const streamSuccess = (stream) => {
   localVideo.srcObject = stream
-
+  myStream = stream;
   audioParams = { track: stream.getAudioTracks()[0], ...audioParams };
   videoParams = { track: stream.getVideoTracks()[0], ...videoParams };
 
@@ -348,3 +350,49 @@ socket.on('producer-closed', ({ remoteProducerId }) => {
   // remove the video div element
   videoContainer.removeChild(document.getElementById(`td-${remoteProducerId}`))
 })
+
+
+const muteBtn = document.getElementById("mute"); 
+const muteIcon = document.getElementById("muteIcon"); 
+const cameraBtn = document.getElementById("camera");
+const cameraIcon = document.getElementById("cameraIcon");
+let muted = false;
+let cameraOff = false;
+
+function handleMuteClick() {
+  myStream
+  .getAudioTracks()
+  .forEach((track) => (track.enabled = !track.enabled)); // 오디오 요소를 키고 끄기
+  if (!muted) { // mute가 아닌 상태라면 (초기 상태)
+    // muteBtn.innerText = "Unmute";
+    muted = true;
+    muteIcon.classList.remove('fa-microphone')
+    muteIcon.classList.add('fa-microphone-slash')
+
+  } else {
+    // muteBtn.innerText = "Mute";
+    muted = false;
+    muteIcon.classList.remove('fa-microphone-slash')
+    muteIcon.classList.add('fa-microphone')
+  }
+}
+
+function handleCameraClick() {
+  myStream
+  .getVideoTracks()
+  .forEach((track) => (track.enabled = !track.enabled)); // 카메라 화면 요소를 키고 끄기 
+  if (!cameraOff) { // 카메라가 켜진 상태라면 (초기 상태)
+    cameraOff = true;
+    cameraIcon.classList.remove('fa-video');
+    cameraIcon.classList.add('fa-video-slash');
+
+  } else {
+    cameraOff = false;
+    cameraIcon.classList.remove('fa-video-slash');
+    cameraIcon.classList.add('fa-video');
+  }
+}
+
+
+muteBtn.addEventListener("click", handleMuteClick);
+cameraBtn.addEventListener("click", handleCameraClick);

@@ -1,4 +1,5 @@
 <html>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
   <head>
     <style>
         button {
@@ -60,6 +61,11 @@
                     <tr>
                         <td class="localColumn">
                             <video id="localVideo" autoplay class="video" muted ></video>
+                            <div style="text-align: center">
+                                <span id="userName">  </span>
+                                <button id="mute"> <i id="muteIcon" class="fa-solid fa-microphone"></i></button><span> </span>
+                                <button id="camera"><i id="cameraIcon" class="fa-solid fa-video"></i></button><span> </span>
+                            </div>
                         </td>
                         <td class="remoteColumn">
                             <div id="videoContainer"></div>
