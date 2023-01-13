@@ -17880,7 +17880,7 @@ const connectSendTransport = async () => {
   })
 }
 
-const signalNewConsumerTransport = async (remoteProducerId) => {
+const signalNewConsumerTransport = async (remoteProducerId, socketId) => {
   //check if we are already consuming the remoteProducerId
   if (consumingTransports.includes(remoteProducerId)) return;
   consumingTransports.push(remoteProducerId);
@@ -17922,12 +17922,13 @@ const signalNewConsumerTransport = async (remoteProducerId) => {
       }
     })
 
-    connectRecvTransport(consumerTransport, remoteProducerId, params.id)
+    connectRecvTransport(consumerTransport, remoteProducerId, params.id, socketId)
   })
 }
 
 // server informs the client of a new producer just joined
-socket.on('new-producer', ({ producerId }) => signalNewConsumerTransport(producerId))
+
+socket.on('new-producer', ({ producerId, socketId }) => signalNewConsumerTransport(producerId, socketId))
 
 const getProducers = () => {
   socket.emit('getProducers', producerIds => {
@@ -17938,7 +17939,7 @@ const getProducers = () => {
   })
 }
 
-const connectRecvTransport = async (consumerTransport, remoteProducerId, serverConsumerTransportId) => {
+const connectRecvTransport = async (consumerTransport, remoteProducerId, serverConsumerTransportId, socketId) => {
   // for consumer, we need to tell the server first
   // to create a consumer based on the rtpCapabilities and consume
   // if the router can consume, it will send back a set of params as below
@@ -17972,6 +17973,7 @@ const connectRecvTransport = async (consumerTransport, remoteProducerId, serverC
       },
     ]
 
+    /*
     // create a new div element for the new consumer media
     const newElem = document.createElement('div')
     newElem.setAttribute('id', `td-${remoteProducerId}`)
@@ -17982,11 +17984,72 @@ const connectRecvTransport = async (consumerTransport, remoteProducerId, serverC
     } else {
       //append to the video container
       newElem.setAttribute('class', 'remoteVideo')
-      newElem.innerHTML = '<video id="' + remoteProducerId + '" autoplay class="video" ></video>'
+      newElem.innerHTML = '<video id="' + remoteProducerId + '" autoplay class="video"></video>'
+
+      const wrapDiv = document.createElement('div')
+      const audioOut = document.createElement('button')
+
+      // audioOut.setAttribute('id', 'mute')
+      // const audioOutI = document.createElement('i')
+      // audioOut.setAttribute('class', 'fa-solid fa-microphone')
+      // audioOut.appendChild(audioOutI)
+    
+      // const audioOutI = document.createElement('i');
+      // audioOut.setAttribute('class', 'fa-solid fa-microphone');
+      // audioOut.appendChild(audioOutI)
+
+      // const videoOut = document.createElement('button')
+      // const videoOutI = document.createElement('i')
+      // videoOutI.setAttribute('class', 'fa-solid fa-video`')
+      // videoOut.appendChild(videoOutI)
+
+      wrapDiv.appendChild(audioOut)
+      // wrapDiv.appendChild(videoOut)
+
+      // videoOut.addEventListener('click', (event)=> {
+      //   // const socketId = event.target.closest(".remoteVideo").id
+      //   // console.log('🐸나와랏 얍!🐸' + socketId)
+      // })
+
+      // videoDiv.appendChild(wrapDiv)
     }
 
     videoContainer.appendChild(newElem)
+*/
+  const videoContainer = document.getElementById("videoContainer")
+    let videoDiv = document.getElementById(socketId)
+      if (!videoDiv) {
+        const newElem = document.createElement('div')
+        newElem.setAttribute('id', socketId)
+        newElem.setAttribute('class', 'remoteVideo')
+        videoContainer.appendChild(newElem)
+        videoDiv = newElem
+      }
 
+        if (params.kind === 'audio') {
+            videoDiv.innerHTML += '<audio autoplay id="' + remoteProducerId + '" off="false"></audio>'
+        } else {
+            videoDiv.innerHTML += '<video autoplay id="' + remoteProducerId + '" class="video" off="false"></video>'
+            const wrapDiv = document.createElement('div')
+
+            const audioOut = document.createElement('button')
+            const audioOutI = document.createElement('i')
+            audioOutI.setAttribute('class', 'fa-solid fa-microphone audio-icon')
+            audioOut.appendChild(audioOutI)
+
+            const videoOut = document.createElement('button')
+            const videoOutI = document.createElement('i')
+            videoOutI.setAttribute('class', 'fa-solid fa-video video-icon')
+            videoOut.appendChild(videoOutI)
+
+            wrapDiv.appendChild(audioOut)
+            wrapDiv.appendChild(videoOut)
+
+            videoOut.addEventListener('click', (event) => toggleWebRTCContext(event, 'video'));
+            audioOut.addEventListener('click', (event) => toggleWebRTCContext(event, 'audio'));
+
+            videoDiv.appendChild(wrapDiv)
+        }
     // destructure and retrieve the video track from the producer
     const { track } = consumer
 
@@ -18012,7 +18075,7 @@ socket.on('producer-closed', ({ remoteProducerId }) => {
   // 🌟1. 원본코드
   // videoContainer.removeChild(document.getElementById(`td-${remoteProducerId}`))
 
-  //🌟 수정코드
+  // //🌟 수정코드
   const videoContainer = document.getElementById("videoContainer");
   const removeTarget = document.getElementById(remoteProducerId);
   if(removeTarget){
@@ -18020,6 +18083,33 @@ socket.on('producer-closed', ({ remoteProducerId }) => {
   }
 })
 
+//🌟 수정코드 togggleWebRTCCONTEXT
+function toggleWebRTCContext(event, context) {
+  // console.log(event, context)
+  console.log('🍀🍀🍀'+ event)
+  console.log('🍀🍀🍀' + context)
+
+  const remoteVideoDiv = event.target.closest(".remoteVideo")
+  console.log(remoteVideoDiv)
+  const socketId = remoteVideoDiv.id
+  const ele = remoteVideoDiv.querySelector(context)
+  const off = !JSON.parse(ele.getAttribute("off"))
+
+  ele.setAttribute("off", off)
+
+  const icon = remoteVideoDiv.querySelector(`.${context}-icon`)
+  const toggleIconName = context === 'video' ? 'video' : 'microphone'
+  icon.classList.toggle(`fa-${toggleIconName}`, !off);
+  icon.classList.toggle(`fa-${toggleIconName}-slash`, off);
+
+  console.log((off ? `${context} on` : `${context} off`) + " target socket id: ", socketId)
+
+  // 'video-out', 'audio-out' emit 
+  socket.emit(`${context}-out`, {
+      socketId: socketId,
+      off: off
+  })
+}
 
 const muteBtn = document.getElementById("mute"); 
 const muteIcon = document.getElementById("muteIcon"); 

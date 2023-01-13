@@ -299,7 +299,9 @@ connections.on('connection', async socket => {
       if (producerData.socketId !== socketId && producerData.roomName === roomName) {
         const producerSocket = peers[producerData.socketId].socket
         // use socket to send producer id to producer
-        producerSocket.emit('new-producer', { producerId: id })
+
+        console.log('보낼 소켓=============' + socketId )
+        producerSocket.emit('new-producer', { producerId: id, socketId : socketId })
       }
     })
   }
